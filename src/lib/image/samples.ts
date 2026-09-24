@@ -27,3 +27,9 @@ export const SAMPLE_IMAGES: readonly SampleImage[] = [
     credit: 'Elden Ring art via candb.com',
   },
 ]
+
+const defaultSample = SAMPLE_IMAGES.find((sample) => sample.id === 'vmart-landscape')
+if (!defaultSample) throw new Error('The default sample "vmart-landscape" is missing from SAMPLE_IMAGES')
+
+/** Loaded when the editor opens. */
+export const DEFAULT_SAMPLE: SampleImage = defaultSample
