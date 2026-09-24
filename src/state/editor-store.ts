@@ -1,17 +1,14 @@
 import { create } from 'zustand'
 import { driftEffect, type DriftParams } from '@/effects/drift/definition'
-import type { LabImage } from '@/lib/color/lab-image'
 import type { Lab, Rgb } from '@/lib/color/oklab'
 import { extractPalette, type PaletteEntry } from '@/lib/color/palette'
+import type { ImageAnalysis } from '@/lib/image/analyze-image'
 import type { LoadedImage } from '@/lib/image/loaded-image'
 import type { Selection, TargetColor } from '@/lib/mask/selection'
 import { MAX_LAYERS } from '@/render/limits'
 import { createLayer, type Layer } from './layer'
 
 export type ViewMode = 'animated' | 'mask' | 'original'
-
-/** OKLab grids of the current image: a small one for palette/share statistics, a larger one for masks. */
-export type ImageAnalysis = { sampleLab: LabImage; maskLab: LabImage }
 
 export type HoverInfo = {
   lab: Lab
