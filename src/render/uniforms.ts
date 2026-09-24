@@ -1,0 +1,41 @@
+import type { DriftPattern } from '@/effects/drift/definition'
+import type { Layer } from '@/state/layer'
+import { MAX_LAYERS } from './limits'
+
+/** Must match the `mode` branches in drift.frag.glsl. */
+export const PATTERN_CODES: Record<DriftPattern, number> = { wave: 0, orbit: 1, pulse: 2, turbulence: 3 }
+
+/**
+ * Fixed-size arrays for the shader's uniform arrays. Slot i belongs to layers[i] and to slice i of the
+ * mask texture array, so disabled layers keep their slot (with zero amplitude) instead of being skipped.
+ */
+export type LayerUniforms = {
+  count: number
+  modes: Int32Array
+  /** Per layer: amplitude px, scale px, speed Hz, phase rad. */
+  paramsA: Float32Array
+  /** Per layer: direction x, direction y, center x (0–1), center y (0–1). */
+  paramsB: Float32Array
+}
+
+const DEG_TO_RAD = Math.PI / 180
+
+export function buildLayerUniforms(layers: readonly Layer[]): LayerUniforms {
+  if (layers.length > MAX_LAYERS) {
+    throw new Error(`The renderer supports at most ${MAX_LAYERS} layers, got ${layers.length}`)
+  }
+
+  const modes = new Int32Array(MAX_LAYERS)
+  const paramsA = new Float32Array(MAX_LAYERS * 4)
+  const paramsB = new Float32Array(MAX_LAYERS * 4)
+
+  layers.forEach((layer, i) => {
+    const p = layer.effect.params
+    const direction = p.direction * DEG_TO_RAD
+    modes[i] = PATTERN_CODES[p.pattern]
+    paramsA.set([layer.enabled ? p.amplitude : 0, p.scale, p.speed, p.phase * DEG_TO_RAD], i * 4)
+    paramsB.set([Math.cos(direction), Math.sin(direction), p.centerX, p.centerY], i * 4)
+  })
+
+  return { count: layers.length, modes, paramsA, paramsB }
+}
