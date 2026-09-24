@@ -11,3 +11,10 @@ export function formatStepValue(value: number, step: number): string {
   const decimals = (String(step).split('.')[1] ?? '').length
   return value.toFixed(decimals)
 }
+
+/** Human-readable file size (1024-based). */
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}

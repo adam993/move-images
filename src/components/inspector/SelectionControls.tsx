@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch'
 import { formatPercent } from '@/lib/format'
 import { useEditorStore } from '@/state/editor-store'
 import type { Layer } from '@/state/layer'
-import { RangeControl } from './RangeControl'
+import { RangeControl } from '@/components/range-control'
 import { TargetChip } from './TargetChip'
 
 export function SelectionControls({ layer }: { layer: Layer }) {

@@ -1,4 +1,5 @@
 import { Pause, Pipette, Play } from 'lucide-react'
+import { ExportDialog } from '@/components/export/ExportDialog'
 import { Button } from '@/components/ui/button'
 import { Toggle } from '@/components/ui/toggle'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -51,6 +52,9 @@ export function StageToolbar() {
           {image.name} · {image.width}×{image.height}
         </p>
       )}
+      <div className={image ? '' : 'ml-auto'}>
+        <ExportDialog />
+      </div>
     </div>
   )
 }

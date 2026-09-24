@@ -5,8 +5,8 @@ import { MaskSync } from '@/render/mask-sync'
 import type { Layer } from '@/state/layer'
 import { encodeGif } from './encode-gif'
 import { encodeVideo } from './encode-video'
-import { exportFileName, frameCount, outputSize, type ExportSettings } from './export-settings'
-import { loopLayers } from './loop-timing'
+import { exportFileName, outputSize, type ExportSettings } from './export-settings'
+import { exportTiming } from './export-timing'
 
 /** Everything an export needs, captured when it starts so later edits in the editor don't leak in. */
 export type ExportJob = {
@@ -17,14 +17,6 @@ export type ExportJob = {
 }
 
 export type ExportResult = { blob: Blob; fileName: string; width: number; height: number; frameCount: number }
-
-/** Seconds per loop and the layers to render, with speeds snapped when seamless looping is on. */
-export function exportTiming(settings: ExportSettings, layers: readonly Layer[]) {
-  const frames = frameCount(settings)
-  const loopSeconds = frames / settings.fps
-  const looped = settings.seamlessLoop ? loopLayers(layers, loopSeconds) : { layers: [...layers], adjustments: [] }
-  return { frames, loopSeconds, ...looped }
-}
 
 /** Renders frame i at t = i / fps on an export-sized offscreen renderer and encodes the result. */
 export async function exportAnimation(

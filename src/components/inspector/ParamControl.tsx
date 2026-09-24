@@ -2,7 +2,7 @@ import { useId } from 'react'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { ParamSpec } from '@/effects/types'
-import { RangeControl } from './RangeControl'
+import { RangeControl } from '@/components/range-control'
 
 type ParamControlProps<P> = {
   spec: ParamSpec<P>
