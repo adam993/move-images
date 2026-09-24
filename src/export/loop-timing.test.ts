@@ -49,6 +49,12 @@ describe('loopLayers', () => {
     expect(adjustments).toEqual([{ layerId: 'Tear', layerName: 'Tear', param: 'rate', from: 8.3, to: 8.25 }])
   })
 
+  it('gives glitch and jitter at least two jumps per loop, since one jump would freeze them', () => {
+    const { layers, adjustments } = loopLayers([layer('Slow', { pattern: 'jitter', rate: 0.5 })], 2)
+    expect(layers[0].effect.params.rate).toBe(1)
+    expect(adjustments).toEqual([{ layerId: 'Slow', layerName: 'Slow', param: 'rate', from: 0.5, to: 1 }])
+  })
+
   it('uses the real loop length when duration × fps is not a whole number of frames', () => {
     const loopSeconds = 113 / 25 // 4.5 s at 25 fps rounds to 113 frames
     const { layers } = loopLayers([layer('Water', { pattern: 'wave', speed: 0.35 })], loopSeconds)

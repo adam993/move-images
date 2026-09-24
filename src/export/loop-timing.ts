@@ -29,7 +29,9 @@ export function loopLayers(
     const from = params[param]
     if (from === 0) return layer
 
-    const repeats = Math.max(1, Math.round(from * loopSeconds))
+    // A stepped pattern with one jump per loop would hold a single offset for the whole file.
+    const minRepeats = param === 'rate' ? 2 : 1
+    const repeats = Math.max(minRepeats, Math.round(from * loopSeconds))
     const to = repeats / loopSeconds
     if (Math.abs(to - from) < SNAP_EPSILON) return layer
 
