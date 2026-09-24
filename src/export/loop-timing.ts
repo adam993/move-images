@@ -13,7 +13,7 @@ const SNAP_EPSILON = 1e-9
 
 /**
  * Makes every repeating layer fit a whole number of repeats in `loopSeconds`, so the last frame flows into
- * the first: cycles for wave, orbit, pulse and snap; jumps for glitch and jitter (the shader wraps their
+ * the first: cycles for wave, orbit and pulse; jumps for glitch and jitter (the shader wraps their
  * random sequence at the loop). Turbulence is looped in the shader instead, and 0 is already static.
  * Only enabled layers are reported, since a disabled layer's change is invisible.
  */

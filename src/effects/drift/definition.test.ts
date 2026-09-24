@@ -35,7 +35,7 @@ describe('drift presets', () => {
 
   it('offers at least one preset for each sharp pattern', () => {
     const patterns = new Set(driftEffect.presets.map((preset) => preset.params.pattern))
-    for (const pattern of ['snap', 'glitch', 'jitter'] as const) expect(patterns.has(pattern), pattern).toBe(true)
+    for (const pattern of ['glitch', 'jitter'] as const) expect(patterns.has(pattern), pattern).toBe(true)
   })
 })
 
@@ -53,15 +53,10 @@ describe('param visibility', () => {
     specFor(key).visibleWhen?.(params) ?? true
 
   it('shows direction for the patterns that move along an axis', () => {
-    for (const pattern of ['wave', 'snap', 'glitch', 'jitter'] as const) {
+    for (const pattern of ['wave', 'glitch', 'jitter'] as const) {
       expect(visible('direction', { ...base, pattern }), pattern).toBe(true)
     }
     expect(visible('direction', { ...base, pattern: 'orbit' })).toBe(false)
-  })
-
-  it('shows sharpness only for snap', () => {
-    expect(visible('sharpness', { ...base, pattern: 'snap' })).toBe(true)
-    expect(visible('sharpness', { ...base, pattern: 'wave' })).toBe(false)
   })
 
   it('uses rate (jumps per second) instead of speed for glitch and jitter', () => {
@@ -69,8 +64,8 @@ describe('param visibility', () => {
       expect(visible('rate', { ...base, pattern }), pattern).toBe(true)
       expect(visible('speed', { ...base, pattern }), pattern).toBe(false)
     }
-    expect(visible('rate', { ...base, pattern: 'snap' })).toBe(false)
-    expect(visible('speed', { ...base, pattern: 'snap' })).toBe(true)
+    expect(visible('rate', { ...base, pattern: 'wave' })).toBe(false)
+    expect(visible('speed', { ...base, pattern: 'wave' })).toBe(true)
   })
 
   it('hides scale for jitter, which moves the whole selection as one', () => {

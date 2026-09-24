@@ -2,7 +2,7 @@ import type { EffectPreset } from '@/effects/types'
 import type { DriftParams } from './definition'
 
 // Params a preset's pattern ignores still need values; these are the neutral ones.
-const UNUSED = { centerX: 0.5, centerY: 0.5, sharpness: 0.9, rate: 8 }
+const UNUSED = { centerX: 0.5, centerY: 0.5, rate: 8 }
 
 /** Motion-only presets: applying one keeps the layer's color selection. The first is the default. */
 export const DRIFT_PRESETS: readonly EffectPreset<DriftParams>[] = [
@@ -35,11 +35,6 @@ export const DRIFT_PRESETS: readonly EffectPreset<DriftParams>[] = [
     id: 'swirl',
     label: 'Swirl',
     params: { pattern: 'orbit', amplitude: 2, scale: 120, speed: 0.4, direction: 0, phase: 0, ...UNUSED },
-  },
-  {
-    id: 'hard-snap',
-    label: 'Hard snap',
-    params: { pattern: 'snap', amplitude: 4, scale: 800, speed: 0.8, direction: 0, phase: 0, ...UNUSED },
   },
   {
     id: 'digital-glitch',

@@ -8,9 +8,8 @@ export const PATTERN_CODES: Record<DriftPattern, number> = {
   orbit: 1,
   pulse: 2,
   turbulence: 3,
-  snap: 4,
-  glitch: 5,
-  jitter: 6,
+  glitch: 4,
+  jitter: 5,
 }
 
 /**
@@ -24,7 +23,7 @@ export type LayerUniforms = {
   paramsA: Float32Array
   /** Per layer: direction x, direction y, center x (0–1), center y (0–1). */
   paramsB: Float32Array
-  /** Per layer: sharpness (0–1), rate (jumps/s), unused, unused. */
+  /** Per layer: rate (jumps/s), unused, unused, unused. */
   paramsC: Float32Array
 }
 
@@ -48,7 +47,7 @@ export function buildLayerUniforms(layers: readonly Layer[], pixelScale: number)
     const amplitude = layer.enabled ? p.amplitude * pixelScale : 0
     paramsA.set([amplitude, p.scale * pixelScale, p.speed, p.phase * DEG_TO_RAD], i * 4)
     paramsB.set([Math.cos(direction), Math.sin(direction), p.centerX, p.centerY], i * 4)
-    paramsC.set([p.sharpness, p.rate], i * 4)
+    paramsC[i * 4] = p.rate
   })
 
   return { count: layers.length, modes, paramsA, paramsB, paramsC }

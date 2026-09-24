@@ -1,7 +1,7 @@
 import type { EffectDefinition, EffectPreset, ParamSpec } from '@/effects/types'
 import { DRIFT_PRESETS } from './presets'
 
-export const DRIFT_PATTERNS = ['wave', 'orbit', 'pulse', 'turbulence', 'snap', 'glitch', 'jitter'] as const
+export const DRIFT_PATTERNS = ['wave', 'orbit', 'pulse', 'turbulence', 'glitch', 'jitter'] as const
 export type DriftPattern = (typeof DRIFT_PATTERNS)[number]
 
 /** Drift displaces selected pixels by a few px; distances are reference px (see lib/units.ts). */
@@ -19,8 +19,6 @@ export type DriftParams = {
   centerY: number
   /** Degrees; offsets stacked layers so they don't move in lockstep. */
   phase: number
-  /** Snap only: 0 = smooth sine, 1 = instant jump between the two sides. */
-  sharpness: number
   /** Glitch and jitter: jumps per second (they step, so a cycles-per-second speed doesn't apply). */
   rate: number
 }
@@ -30,16 +28,13 @@ const PATTERN_LABELS: Record<DriftPattern, string> = {
   orbit: 'Orbit',
   pulse: 'Pulse',
   turbulence: 'Turbulence',
-  snap: 'Snap',
   glitch: 'Glitch',
   jitter: 'Jitter',
 }
 
 const isPulse = (params: DriftParams) => params.pattern === 'pulse'
-const isSnap = (params: DriftParams) => params.pattern === 'snap'
 const isStepped = (params: DriftParams) => params.pattern === 'glitch' || params.pattern === 'jitter'
-const movesAlongAxis = (params: DriftParams) =>
-  params.pattern === 'wave' || params.pattern === 'snap' || isStepped(params)
+const movesAlongAxis = (params: DriftParams) => params.pattern === 'wave' || isStepped(params)
 
 const DRIFT_PARAM_SPECS: readonly ParamSpec<DriftParams>[] = [
   {
@@ -70,7 +65,6 @@ const DRIFT_PARAM_SPECS: readonly ParamSpec<DriftParams>[] = [
     visibleWhen: (params) => !isStepped(params),
   },
   { kind: 'range', key: 'rate', label: 'Rate', min: 0, max: 30, step: 0.5, unit: '/s', visibleWhen: isStepped },
-  { kind: 'range', key: 'sharpness', label: 'Sharpness', min: 0, max: 1, step: 0.01, visibleWhen: isSnap },
   {
     kind: 'range',
     key: 'direction',
