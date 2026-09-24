@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { driftEffect } from '@/effects/drift/definition'
 import { rgbToOklab } from '@/lib/color/oklab'
 import type { LoadedImage } from '@/lib/image/loaded-image'
 import { MAX_LAYERS } from '@/render/limits'
@@ -23,15 +24,23 @@ beforeEach(() => {
 })
 
 describe('setImage', () => {
-  it('resets to one active empty layer and computes the palette', () => {
+  it('resets to one active layer that already targets the most colorful palette color', () => {
     state().addLayer()
     state().setImage({ ...image, id: 'img-2' }, { sampleLab: lab, maskLab: lab })
 
     expect(state().layers).toHaveLength(1)
     expect(state().layers[0].name).toBe('Layer 1')
-    expect(state().layers[0].selection.targets).toEqual([])
+    expect(state().layers[0].selection.targets.map((target) => target.hex)).toEqual(['#0000ff'])
     expect(state().activeLayerId).toBe(state().layers[0].id)
     expect(state().palette.map((entry) => entry.hex)).toEqual(['#ff0000', '#00ff00', '#0000ff'])
+  })
+
+  it('starts every layer moving with Wind in foliage at 9 px; added layers start without colors', () => {
+    const wind = driftEffect.presets.find((preset) => preset.id === 'wind-foliage')!.params
+    expect(activeLayer().effect.params).toEqual({ ...wind, amplitude: 9 })
+    state().addLayer()
+    expect(activeLayer().effect.params).toEqual({ ...wind, amplitude: 9 })
+    expect(activeLayer().selection.targets).toEqual([])
   })
 
   it('clears a previous load error and loading flag', () => {
@@ -74,7 +83,8 @@ describe('layers', () => {
     const layers = state().layers
     expect(layers.map((layer) => layer.name)).toEqual(['Layer 1', 'Layer 1 copy', 'Layer 2'])
     expect(layers[1].id).not.toBe(source.id)
-    expect(layers[1].selection.targets).toEqual([red])
+    expect(layers[1].selection.targets).toEqual(layers[0].selection.targets)
+    expect(layers[1].selection.targets).toContainEqual(red)
     expect(activeLayer().id).toBe(layers[1].id)
   })
 
@@ -119,17 +129,19 @@ describe('layers', () => {
 describe('selection', () => {
   it('toggles a target color on, then off again', () => {
     const id = activeLayer().id
+    const initial = activeLayer().selection.targets
     state().toggleTarget(id, red)
-    expect(activeLayer().selection.targets).toEqual([red])
+    expect(activeLayer().selection.targets).toEqual([...initial, red])
     state().toggleTarget(id, { ...red })
-    expect(activeLayer().selection.targets).toEqual([])
+    expect(activeLayer().selection.targets).toEqual(initial)
   })
 
   it('removes a target by hex', () => {
     const id = activeLayer().id
+    const initial = activeLayer().selection.targets
     state().toggleTarget(id, red)
     state().removeTarget(id, '#ff0000')
-    expect(activeLayer().selection.targets).toEqual([])
+    expect(activeLayer().selection.targets).toEqual(initial)
   })
 
   it('replaces the selection object on selection edits so masks rebuild', () => {

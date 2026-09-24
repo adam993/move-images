@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { driftEffect, type DriftParams } from '@/effects/drift/definition'
 import type { Lab, Rgb } from '@/lib/color/oklab'
+import { pickAutoTarget } from '@/lib/color/auto-target'
 import { extractPalette, type PaletteEntry } from '@/lib/color/palette'
 import type { ImageAnalysis } from '@/lib/image/analyze-image'
 import type { LoadedImage } from '@/lib/image/loaded-image'
@@ -108,13 +109,16 @@ export const useEditorStore = create<EditorStore>()((set, get) => {
     ...INITIAL_STATE,
 
     setImage: (image, analysis) => {
-      const first = createLayer(1)
+      const palette = extractPalette(analysis.sampleLab, get().paletteSize)
+      // Start with something moving: the first layer targets the most colorful prominent color.
+      const auto = pickAutoTarget(palette)
+      const first = createLayer(1, auto ? [{ lab: auto.lab, hex: auto.hex }] : [])
       set({
         image,
         analysis,
         loadError: null,
         loading: false,
-        palette: extractPalette(analysis.sampleLab, get().paletteSize),
+        palette,
         layers: [first],
         activeLayerId: first.id,
         layerCounter: 1,
