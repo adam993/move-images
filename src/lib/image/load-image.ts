@@ -1,3 +1,4 @@
+import { errorMessage } from '@/lib/error-message'
 import { fitWithin } from './fit-within'
 import type { LoadedImage } from './loaded-image'
 
@@ -17,7 +18,7 @@ export async function loadImageFromUrl(url: string, name: string): Promise<Loade
   try {
     response = await fetch(url)
   } catch (cause) {
-    throw new Error(`Could not fetch "${name}": ${messageOf(cause)}`, { cause })
+    throw new Error(`Could not fetch "${name}": ${errorMessage(cause)}`, { cause })
   }
   if (!response.ok) throw new Error(`Could not fetch "${name}": HTTP ${response.status}`)
   return decode(await response.blob(), name)
@@ -42,11 +43,7 @@ async function decode(blob: Blob, name: string): Promise<LoadedImage> {
       })
     }
   } catch (cause) {
-    throw new Error(`Could not decode "${name}": ${messageOf(cause)}`, { cause })
+    throw new Error(`Could not decode "${name}": ${errorMessage(cause)}`, { cause })
   }
   return { id: crypto.randomUUID(), name, bitmap, width: bitmap.width, height: bitmap.height }
-}
-
-function messageOf(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause)
 }
