@@ -71,7 +71,9 @@ void main() {
   }
 
   // Backward mapping: each output pixel pulls from its displaced source position, so nothing tears open.
-  vec3 color = texture(uImage, vUv + displacement / uImageSize).rgb;
+  // The mip level comes from the undisplaced UV: the displaced UV's derivatives jump at mask edges and
+  // would pick a blurrier level there, leaving a soft seam around every selection.
+  vec3 color = textureGrad(uImage, vUv + displacement / uImageSize, dFdx(vUv), dFdy(vUv)).rgb;
 
   if (uView == 1 && uActiveLayer >= 0) {
     float selected = texture(uMasks, vec3(vUv, float(uActiveLayer))).r;
