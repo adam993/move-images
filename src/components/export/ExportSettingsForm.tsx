@@ -33,6 +33,7 @@ export function ExportSettingsForm({ settings, onChange, imageSize, videoSupport
   const loopId = useId()
   const unsupported = (format: ExportFormat) =>
     FORMAT_INFO[format].kind === 'video' && videoSupport !== null && !videoSupport.formats[format as 'mp4' | 'webm']
+  const unsupportedLabels = FORMATS.filter(unsupported).map((format) => FORMAT_INFO[format].label)
 
   return (
     <fieldset disabled={disabled} className="grid gap-4">
@@ -50,16 +51,18 @@ export function ExportSettingsForm({ settings, onChange, imageSize, videoSupport
           }}
         >
           {FORMATS.map((format) => (
-            <ToggleGroupItem
-              key={format}
-              value={format}
-              disabled={unsupported(format)}
-              title={unsupported(format) ? `This browser can't encode ${FORMAT_INFO[format].label}` : undefined}
-            >
+            <ToggleGroupItem key={format} value={format} disabled={unsupported(format)}>
               {FORMAT_INFO[format].label}
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
+        {/* Visible text, not a tooltip: disabled toggles ignore the pointer, so a title would never show. */}
+        {unsupportedLabels.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            This browser can't encode {unsupportedLabels.join(' or ')} at this size
+            {videoSupport?.error ? ` (${videoSupport.error})` : ''}.
+          </p>
+        )}
       </div>
 
       <RangeControl
