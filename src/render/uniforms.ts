@@ -3,7 +3,15 @@ import type { Layer } from '@/state/layer'
 import { MAX_LAYERS } from './limits'
 
 /** Must match the `mode` branches in drift.frag.glsl. */
-export const PATTERN_CODES: Record<DriftPattern, number> = { wave: 0, orbit: 1, pulse: 2, turbulence: 3 }
+export const PATTERN_CODES: Record<DriftPattern, number> = {
+  wave: 0,
+  orbit: 1,
+  pulse: 2,
+  turbulence: 3,
+  snap: 4,
+  glitch: 5,
+  jitter: 6,
+}
 
 /**
  * Fixed-size arrays for the shader's uniform arrays. Slot i belongs to layers[i] and to slice i of the
@@ -16,6 +24,8 @@ export type LayerUniforms = {
   paramsA: Float32Array
   /** Per layer: direction x, direction y, center x (0–1), center y (0–1). */
   paramsB: Float32Array
+  /** Per layer: sharpness (0–1), rate (jumps/s), unused, unused. */
+  paramsC: Float32Array
 }
 
 const DEG_TO_RAD = Math.PI / 180
@@ -29,6 +39,7 @@ export function buildLayerUniforms(layers: readonly Layer[], pixelScale: number)
   const modes = new Int32Array(MAX_LAYERS)
   const paramsA = new Float32Array(MAX_LAYERS * 4)
   const paramsB = new Float32Array(MAX_LAYERS * 4)
+  const paramsC = new Float32Array(MAX_LAYERS * 4)
 
   layers.forEach((layer, i) => {
     const p = layer.effect.params
@@ -37,7 +48,8 @@ export function buildLayerUniforms(layers: readonly Layer[], pixelScale: number)
     const amplitude = layer.enabled ? p.amplitude * pixelScale : 0
     paramsA.set([amplitude, p.scale * pixelScale, p.speed, p.phase * DEG_TO_RAD], i * 4)
     paramsB.set([Math.cos(direction), Math.sin(direction), p.centerX, p.centerY], i * 4)
+    paramsC.set([p.sharpness, p.rate], i * 4)
   })
 
-  return { count: layers.length, modes, paramsA, paramsB }
+  return { count: layers.length, modes, paramsA, paramsB, paramsC }
 }

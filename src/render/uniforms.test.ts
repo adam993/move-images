@@ -40,11 +40,18 @@ describe('buildLayerUniforms', () => {
   })
 
   it('maps every pattern to its shader code', () => {
+    const patterns = ['wave', 'orbit', 'pulse', 'turbulence', 'snap', 'glitch', 'jitter'] as const
     const uniforms = buildLayerUniforms(
-      (['wave', 'orbit', 'pulse', 'turbulence'] as const).map((pattern) => layerWith({ pattern })),
+      patterns.map((pattern) => layerWith({ pattern })),
       1,
     )
-    expect(Array.from(uniforms.modes.slice(0, 4))).toEqual([0, 1, 2, 3])
+    expect(Array.from(uniforms.modes.slice(0, 7))).toEqual([0, 1, 2, 3, 4, 5, 6])
+  })
+
+  it('packs sharpness and rate into the third parameter block', () => {
+    const uniforms = buildLayerUniforms([layerWith({ sharpness: 0.75, rate: 12 })], 1)
+    expect(uniforms.paramsC).toHaveLength(MAX_LAYERS * 4)
+    expect(Array.from(uniforms.paramsC.slice(0, 2))).toEqual([0.75, 12])
   })
 
   it('zeroes the amplitude of a disabled layer so it keeps its slot but does not move', () => {

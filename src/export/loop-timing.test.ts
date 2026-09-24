@@ -12,7 +12,7 @@ describe('loopLayers', () => {
   it('snaps a periodic layer to a whole number of cycles over the loop and reports the change', () => {
     const { layers, adjustments } = loopLayers([layer('Water', { pattern: 'wave', speed: 0.35 })], 4)
     expect(layers[0].effect.params.speed).toBeCloseTo(0.25, 10)
-    expect(adjustments).toEqual([{ layerId: 'Water', layerName: 'Water', fromHz: 0.35, toHz: 0.25 }])
+    expect(adjustments).toEqual([{ layerId: 'Water', layerName: 'Water', param: 'speed', from: 0.35, to: 0.25 }])
   })
 
   it('leaves a speed that already fits the loop untouched and unreported', () => {
@@ -39,6 +39,14 @@ describe('loopLayers', () => {
     const { layers, adjustments } = loopLayers([layer('Off', { pattern: 'wave', speed: 0.35 }, false)], 4)
     expect(layers[0].effect.params.speed).toBeCloseTo(0.25, 10)
     expect(adjustments).toEqual([])
+  })
+
+  it('snaps rate instead of speed for glitch and jitter, to whole jumps per loop', () => {
+    const glitch = layer('Tear', { pattern: 'glitch', rate: 8.3, speed: 0.35 })
+    const { layers, adjustments } = loopLayers([glitch], 4)
+    expect(layers[0].effect.params.rate).toBeCloseTo(8.25, 10)
+    expect(layers[0].effect.params.speed).toBe(0.35)
+    expect(adjustments).toEqual([{ layerId: 'Tear', layerName: 'Tear', param: 'rate', from: 8.3, to: 8.25 }])
   })
 
   it('uses the real loop length when duration × fps is not a whole number of frames', () => {

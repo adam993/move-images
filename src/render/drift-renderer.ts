@@ -30,6 +30,7 @@ const UNIFORM_NAMES = [
   'uModes',
   'uParamsA',
   'uParamsB',
+  'uParamsC',
   'uView',
   'uActiveLayer',
   'uLoopDuration',
@@ -153,6 +154,7 @@ export class DriftRenderer {
     gl.uniform1iv(u.uModes, layers.modes)
     gl.uniform4fv(u.uParamsA, layers.paramsA)
     gl.uniform4fv(u.uParamsB, layers.paramsB)
+    gl.uniform4fv(u.uParamsC, layers.paramsC)
     gl.uniform1i(u.uView, VIEW_CODES[frame.view])
     gl.uniform1i(u.uActiveLayer, frame.activeLayerIndex)
     gl.uniform1f(u.uLoopDuration, frame.loopDuration ?? 0)

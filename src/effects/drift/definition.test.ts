@@ -32,6 +32,11 @@ describe('drift presets', () => {
     expect(driftEffect.presets[0].id).toBe('gentle-water')
     expect(driftEffect.defaults).toEqual(driftEffect.presets[0].params)
   })
+
+  it('offers at least one preset for each sharp pattern', () => {
+    const patterns = new Set(driftEffect.presets.map((preset) => preset.params.pattern))
+    for (const pattern of ['snap', 'glitch', 'jitter'] as const) expect(patterns.has(pattern), pattern).toBe(true)
+  })
 })
 
 describe('findMatchingPreset', () => {
@@ -47,9 +52,30 @@ describe('param visibility', () => {
   const visible = (key: keyof DriftParams, params: DriftParams) =>
     specFor(key).visibleWhen?.(params) ?? true
 
-  it('shows direction only for the wave pattern', () => {
-    expect(visible('direction', { ...base, pattern: 'wave' })).toBe(true)
+  it('shows direction for the patterns that move along an axis', () => {
+    for (const pattern of ['wave', 'snap', 'glitch', 'jitter'] as const) {
+      expect(visible('direction', { ...base, pattern }), pattern).toBe(true)
+    }
     expect(visible('direction', { ...base, pattern: 'orbit' })).toBe(false)
+  })
+
+  it('shows sharpness only for snap', () => {
+    expect(visible('sharpness', { ...base, pattern: 'snap' })).toBe(true)
+    expect(visible('sharpness', { ...base, pattern: 'wave' })).toBe(false)
+  })
+
+  it('uses rate (jumps per second) instead of speed for glitch and jitter', () => {
+    for (const pattern of ['glitch', 'jitter'] as const) {
+      expect(visible('rate', { ...base, pattern }), pattern).toBe(true)
+      expect(visible('speed', { ...base, pattern }), pattern).toBe(false)
+    }
+    expect(visible('rate', { ...base, pattern: 'snap' })).toBe(false)
+    expect(visible('speed', { ...base, pattern: 'snap' })).toBe(true)
+  })
+
+  it('hides scale for jitter, which moves the whole selection as one', () => {
+    expect(visible('scale', { ...base, pattern: 'jitter' })).toBe(false)
+    expect(visible('scale', { ...base, pattern: 'glitch' })).toBe(true)
   })
 
   it('shows the center only for the pulse pattern', () => {
@@ -58,9 +84,9 @@ describe('param visibility', () => {
     expect(visible('centerX', { ...base, pattern: 'turbulence' })).toBe(false)
   })
 
-  it('always shows amplitude, scale, speed and phase', () => {
+  it('always shows amplitude and phase', () => {
     for (const pattern of DRIFT_PATTERNS) {
-      for (const key of ['amplitude', 'scale', 'speed', 'phase'] as const) {
+      for (const key of ['amplitude', 'phase'] as const) {
         expect(visible(key, { ...base, pattern })).toBe(true)
       }
     }

@@ -10,9 +10,10 @@ uniform sampler2DArray uMasks;   // slice i = selection weight of layer i
 uniform vec2 uImageSize;         // source pixels
 uniform float uTime;             // seconds
 uniform int uLayerCount;
-uniform int uModes[MAX_LAYERS];     // 0 wave, 1 orbit, 2 pulse, 3 turbulence (see uniforms.ts)
+uniform int uModes[MAX_LAYERS];     // 0 wave, 1 orbit, 2 pulse, 3 turbulence, 4 snap, 5 glitch, 6 jitter (see uniforms.ts)
 uniform vec4 uParamsA[MAX_LAYERS];  // amplitude px, scale px, speed Hz, phase rad
 uniform vec4 uParamsB[MAX_LAYERS];  // direction xy, center xy (0-1)
+uniform vec4 uParamsC[MAX_LAYERS];  // sharpness (0-1), rate (jumps/s), unused, unused
 uniform int uView;                  // 0 animated, 1 mask, 2 original
 uniform int uActiveLayer;
 uniform float uLoopDuration;         // seconds; > 0 makes turbulence repeat exactly (export loops)
@@ -24,6 +25,20 @@ out vec4 outColor;
 
 float fbm(vec3 q) {
   return 0.67 * snoise(q) + 0.33 * snoise(q * 2.03 + 17.0);
+}
+
+// "Hash without Sine" by Dave Hoskins, MIT License (https://www.shadertoy.com/view/4djSRW). Returns [0, 1).
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+// Which jump a stepped pattern is on. In a loop the index wraps, so the random sequence repeats exactly.
+float jumpIndex(float rate) {
+  float index = floor(rate * uTime);
+  if (uLoopDuration > 0.0) index = mod(index, max(1.0, floor(rate * uLoopDuration + 0.5)));
+  return index;
 }
 
 // Displacement of layer i at source-pixel position p, in source pixels.
@@ -51,6 +66,28 @@ vec2 layerDisplacement(int i, vec2 p) {
     float radius = length(fromCenter);
     vec2 outward = radius > 0.5 ? fromCenter / radius : vec2(0.0);
     return outward * amplitude * sin(TAU * (radius / scale - speed * uTime) + phase);
+  }
+  if (mode == 4) {
+    // Snap: a wave squeezed toward a square wave, so pixels hold at one side, then jump across.
+    vec2 dir = uParamsB[i].xy;
+    vec2 across = vec2(-dir.y, dir.x);
+    float wave = sin(TAU * (dot(p, across) / scale - speed * uTime) + phase);
+    float hardness = mix(1.0, 40.0, uParamsC[i].x);
+    return dir * amplitude * clamp(wave * hardness, -1.0, 1.0);
+  }
+  if (mode == 5) {
+    // Glitch: bands across the direction jump sideways by random amounts, re-rolled every jump;
+    // about 40% of bands move at a time.
+    vec2 dir = uParamsB[i].xy;
+    vec2 across = vec2(-dir.y, dir.x);
+    vec2 seed = vec2(floor(dot(p, across) / scale), jumpIndex(uParamsC[i].y)) + phase;
+    float moves = step(0.6, hash12(seed));
+    return dir * amplitude * moves * (hash12(seed + 17.13) * 2.0 - 1.0);
+  }
+  if (mode == 6) {
+    // Jitter: the whole selection jumps to a new random offset along the direction every jump.
+    float offset = hash12(vec2(jumpIndex(uParamsC[i].y), phase)) * 2.0 - 1.0;
+    return uParamsB[i].xy * amplitude * offset;
   }
   // Turbulence: noise evolving through time instead of scrolling, so the motion stays in place.
   vec3 q = vec3(p / scale, speed * uTime + phase / TAU);

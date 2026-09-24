@@ -1,12 +1,20 @@
 import type { Layer } from '@/state/layer'
 
-export type LoopAdjustment = { layerId: string; layerName: string; fromHz: number; toHz: number }
+export type LoopAdjustment = {
+  layerId: string
+  layerName: string
+  /** `speed` is cycles per second; `rate` is jumps per second (glitch, jitter). */
+  param: 'speed' | 'rate'
+  from: number
+  to: number
+}
 
-const SPEED_EPSILON = 1e-9
+const SNAP_EPSILON = 1e-9
 
 /**
- * Makes periodic layers (wave, orbit, pulse) complete a whole number of cycles in `loopSeconds`, so the last
- * frame flows into the first. Turbulence is looped in the shader instead, and speed 0 is already static.
+ * Makes every repeating layer fit a whole number of repeats in `loopSeconds`, so the last frame flows into
+ * the first: cycles for wave, orbit, pulse and snap; jumps for glitch and jitter (the shader wraps their
+ * random sequence at the loop). Turbulence is looped in the shader instead, and 0 is already static.
  * Only enabled layers are reported, since a disabled layer's change is invisible.
  */
 export function loopLayers(
@@ -16,16 +24,17 @@ export function loopLayers(
   const adjustments: LoopAdjustment[] = []
   const looped = layers.map((layer) => {
     const { params } = layer.effect
-    if (params.pattern === 'turbulence' || params.speed === 0) return layer
+    if (params.pattern === 'turbulence') return layer
+    const param = params.pattern === 'glitch' || params.pattern === 'jitter' ? 'rate' : 'speed'
+    const from = params[param]
+    if (from === 0) return layer
 
-    const cycles = Math.max(1, Math.round(params.speed * loopSeconds))
-    const speed = cycles / loopSeconds
-    if (Math.abs(speed - params.speed) < SPEED_EPSILON) return layer
+    const repeats = Math.max(1, Math.round(from * loopSeconds))
+    const to = repeats / loopSeconds
+    if (Math.abs(to - from) < SNAP_EPSILON) return layer
 
-    if (layer.enabled) {
-      adjustments.push({ layerId: layer.id, layerName: layer.name, fromHz: params.speed, toHz: speed })
-    }
-    return { ...layer, effect: { ...layer.effect, params: { ...params, speed } } }
+    if (layer.enabled) adjustments.push({ layerId: layer.id, layerName: layer.name, param, from, to })
+    return { ...layer, effect: { ...layer.effect, params: { ...params, [param]: to } } }
   })
   return { layers: looped, adjustments }
 }
