@@ -1,6 +1,7 @@
 // 3D simplex noise, output roughly in [-1, 1].
-// From "webgl-noise" by Ian McEwan and Stefan Gustavson (Ashima Arts), MIT License.
-// https://github.com/ashima/webgl-noise
+// From "webgl-noise" (https://github.com/stegu/webgl-noise), author Ian McEwan, Ashima Arts.
+// Copyright (C) 2011 by Ashima Arts. Copyright (C) 2011-2016 by Stefan Gustavson.
+// MIT License — full text in THIRD_PARTY_NOTICES.md.
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }

@@ -27,7 +27,8 @@ float fbm(vec3 q) {
   return 0.67 * snoise(q) + 0.33 * snoise(q * 2.03 + 17.0);
 }
 
-// "Hash without Sine" by Dave Hoskins, MIT License (https://www.shadertoy.com/view/4djSRW). Returns [0, 1).
+// "Hash without Sine" (https://www.shadertoy.com/view/4djSRW). Copyright (c) 2014 David Hoskins.
+// MIT License — full text in THIRD_PARTY_NOTICES.md. Returns [0, 1).
 float hash12(vec2 p) {
   vec3 p3 = fract(vec3(p.xyx) * 0.1031);
   p3 += dot(p3, p3.yzx + 33.33);
