@@ -1,6 +1,7 @@
 import type { ImageAnalysis } from '@/lib/image/analyze-image'
 import { buildMask, type Mask } from '@/lib/mask/build-mask'
 import type { Selection } from '@/lib/mask/selection'
+import { referenceScale } from '@/lib/units'
 import type { Layer } from '@/state/layer'
 import type { DriftRenderer } from './drift-renderer'
 
@@ -25,7 +26,7 @@ export class MaskSync {
     this.onCoverage = onCoverage
   }
 
-  sync(analysis: ImageAnalysis, sourceWidth: number, layers: readonly Layer[]): void {
+  sync(analysis: ImageAnalysis, layers: readonly Layer[]): void {
     const { maskLab } = analysis
     if (analysis !== this.analysis) {
       this.target.allocateMasks(maskLab.width, maskLab.height)
@@ -40,7 +41,7 @@ export class MaskSync {
 
       let mask = this.masks.get(layer.selection)
       if (!mask) {
-        const featherPx = (layer.selection.feather * maskLab.width) / sourceWidth
+        const featherPx = layer.selection.feather * referenceScale(maskLab.width, maskLab.height)
         mask = buildMask(maskLab, layer.selection, featherPx)
         this.masks.set(layer.selection, mask)
       }

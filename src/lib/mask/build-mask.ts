@@ -17,7 +17,7 @@ export function selectionWeight(distance: number, tolerance: number, softness: n
 
 /**
  * Builds a layer's mask from its color selection. `featherPx` is in mask-grid pixels (callers convert
- * from source pixels); it is applied as two box-blur passes of half that radius, which approximates a
+ * from reference px); it is applied as two box-blur passes of half that radius, which approximates a
  * gaussian edge.
  */
 export function buildMask(image: LabImage, selection: Selection, featherPx: number): Mask {

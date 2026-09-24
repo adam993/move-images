@@ -9,7 +9,7 @@ export type Selection = {
   tolerance: number
   /** Extra OKLab distance over which selection fades from 1 to 0. */
   softness: number
-  /** Spatial edge blur, in source-image pixels. */
+  /** Spatial edge blur, in reference px (see lib/units.ts). */
   feather: number
   invert: boolean
 }

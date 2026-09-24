@@ -44,7 +44,7 @@ describe('MaskSync', () => {
   it('allocates once per image and uploads each layer mask with its coverage', () => {
     const red = layerTargeting(RED, 'red')
     const green = layerTargeting(GREEN, 'green')
-    sync.sync(analysis, 10, [red, green])
+    sync.sync(analysis, [red, green])
 
     expect(target.allocations).toEqual([[10, 10]])
     expect(target.uploads.map((upload) => upload.index)).toEqual([0, 1])
@@ -54,15 +54,15 @@ describe('MaskSync', () => {
 
   it('does nothing for a motion-only edit (same selection object)', () => {
     const red = layerTargeting(RED, 'red')
-    sync.sync(analysis, 10, [red])
-    sync.sync(analysis, 10, [{ ...red, effect: { ...red.effect, params: { ...red.effect.params, amplitude: 9 } } }])
+    sync.sync(analysis, [red])
+    sync.sync(analysis, [{ ...red, effect: { ...red.effect, params: { ...red.effect.params, amplitude: 9 } } }])
     expect(target.uploads).toHaveLength(1)
   })
 
   it('gives a duplicate its coverage and reuses the source mask instead of rebuilding', () => {
     const red = layerTargeting(RED, 'red')
-    sync.sync(analysis, 10, [red])
-    sync.sync(analysis, 10, [red, { ...red, id: 'copy' }])
+    sync.sync(analysis, [red])
+    sync.sync(analysis, [red, { ...red, id: 'copy' }])
 
     expect(target.uploads[1].index).toBe(1)
     expect(target.uploads[1].mask).toBe(target.uploads[0].mask)
@@ -71,10 +71,10 @@ describe('MaskSync', () => {
 
   it('reports coverage for a copy made after deleting an earlier copy of the same layer', () => {
     const red = layerTargeting(RED, 'red')
-    sync.sync(analysis, 10, [red])
-    sync.sync(analysis, 10, [red, { ...red, id: 'copy-1' }])
-    sync.sync(analysis, 10, [red])
-    sync.sync(analysis, 10, [red, { ...red, id: 'copy-2' }])
+    sync.sync(analysis, [red])
+    sync.sync(analysis, [red, { ...red, id: 'copy-1' }])
+    sync.sync(analysis, [red])
+    sync.sync(analysis, [red, { ...red, id: 'copy-2' }])
 
     expect(coverage.get('copy-2')).toBeCloseTo(0.5, 6)
   })
@@ -82,19 +82,33 @@ describe('MaskSync', () => {
   it('moves later masks down a slot after a delete without rebuilding them', () => {
     const red = layerTargeting(RED, 'red')
     const blue = layerTargeting(BLUE, 'blue')
-    sync.sync(analysis, 10, [red, blue])
+    sync.sync(analysis, [red, blue])
     const blueMask = target.uploads[1].mask
 
-    sync.sync(analysis, 10, [blue])
+    sync.sync(analysis, [blue])
     expect(target.uploads[2]).toEqual({ index: 0, mask: blueMask })
     expect(target.uploads[2].mask).toBe(blueMask)
   })
 
+  it('measures feather in reference px (px at a 1000 px long side), not mask-grid px', () => {
+    const strip = labImageFromPixels([...run(RED, 100), ...run(BLUE, 100)], 200, 1)
+    const stripAnalysis: ImageAnalysis = { sampleLab: strip, maskLab: strip }
+    const withFeather = (id: string, feather: number): Layer => {
+      const red = layerTargeting(RED, id)
+      return { ...red, selection: { ...red.selection, feather } }
+    }
+    // 200 px mask grid = 0.2 × reference: 2 ref px → 0.4 grid px (no blur), 10 ref px → 2 grid px (blur).
+    sync.sync(stripAnalysis, [withFeather('narrow', 2), withFeather('wide', 10)])
+    const [narrow, wide] = target.uploads.map((upload) => upload.mask.data)
+    expect(narrow[100]).toBe(0)
+    expect(wide[100]).toBeGreaterThan(0)
+  })
+
   it('reallocates and rebuilds every mask for a new image', () => {
     const red = layerTargeting(RED, 'red')
-    sync.sync(analysis, 10, [red])
+    sync.sync(analysis, [red])
     const nextAnalysis: ImageAnalysis = { sampleLab: lab, maskLab: lab }
-    sync.sync(nextAnalysis, 10, [red])
+    sync.sync(nextAnalysis, [red])
 
     expect(target.allocations).toHaveLength(2)
     expect(target.uploads).toHaveLength(2)

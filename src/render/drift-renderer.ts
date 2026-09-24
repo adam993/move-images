@@ -1,4 +1,5 @@
 import type { Mask } from '@/lib/mask/build-mask'
+import { referenceScale } from '@/lib/units'
 import type { ViewMode } from '@/state/editor-store'
 import type { Layer } from '@/state/layer'
 import { createProgram } from './gl-utils'
@@ -129,7 +130,7 @@ export class DriftRenderer {
       return
     }
 
-    const layers = buildLayerUniforms(frame.layers)
+    const layers = buildLayerUniforms(frame.layers, referenceScale(this.imageSize.width, this.imageSize.height))
     gl.useProgram(this.program)
     gl.bindVertexArray(this.vertexArray)
 

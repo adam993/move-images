@@ -12,7 +12,7 @@ export const PATTERN_CODES: Record<DriftPattern, number> = { wave: 0, orbit: 1, 
 export type LayerUniforms = {
   count: number
   modes: Int32Array
-  /** Per layer: amplitude px, scale px, speed Hz, phase rad. */
+  /** Per layer: amplitude (source px), scale (source px), speed Hz, phase rad. */
   paramsA: Float32Array
   /** Per layer: direction x, direction y, center x (0–1), center y (0–1). */
   paramsB: Float32Array
@@ -20,7 +20,8 @@ export type LayerUniforms = {
 
 const DEG_TO_RAD = Math.PI / 180
 
-export function buildLayerUniforms(layers: readonly Layer[]): LayerUniforms {
+/** `pixelScale` converts reference px to source px (see lib/units.ts). */
+export function buildLayerUniforms(layers: readonly Layer[], pixelScale: number): LayerUniforms {
   if (layers.length > MAX_LAYERS) {
     throw new Error(`The renderer supports at most ${MAX_LAYERS} layers, got ${layers.length}`)
   }
@@ -33,7 +34,8 @@ export function buildLayerUniforms(layers: readonly Layer[]): LayerUniforms {
     const p = layer.effect.params
     const direction = p.direction * DEG_TO_RAD
     modes[i] = PATTERN_CODES[p.pattern]
-    paramsA.set([layer.enabled ? p.amplitude : 0, p.scale, p.speed, p.phase * DEG_TO_RAD], i * 4)
+    const amplitude = layer.enabled ? p.amplitude * pixelScale : 0
+    paramsA.set([amplitude, p.scale * pixelScale, p.speed, p.phase * DEG_TO_RAD], i * 4)
     paramsB.set([Math.cos(direction), Math.sin(direction), p.centerX, p.centerY], i * 4)
   })
 

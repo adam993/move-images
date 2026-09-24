@@ -47,7 +47,7 @@ export function useDriftRenderer(canvasRef: RefObject<HTMLCanvasElement | null>)
           renderer.setImage(state.image.bitmap)
           uploadedImage = state.image
         }
-        if (state.image && state.analysis) maskSync.sync(state.analysis, state.image.width, state.layers)
+        if (state.analysis) maskSync.sync(state.analysis, state.layers)
         renderer.render({
           time,
           layers: state.layers,

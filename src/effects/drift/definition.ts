@@ -4,7 +4,7 @@ import { DRIFT_PRESETS } from './presets'
 export const DRIFT_PATTERNS = ['wave', 'orbit', 'pulse', 'turbulence'] as const
 export type DriftPattern = (typeof DRIFT_PATTERNS)[number]
 
-/** Drift displaces selected pixels by a few px; distances are in source-image pixels. */
+/** Drift displaces selected pixels by a few px; distances are reference px (see lib/units.ts). */
 export type DriftParams = {
   pattern: DriftPattern
   amplitude: number
