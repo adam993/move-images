@@ -22,7 +22,7 @@ describe('oklabToRgb', () => {
       [0, 0, 255],
     ] as const
     for (const rgb of colors) {
-      expect(oklabToRgb(rgbToOklab(...rgb))).toEqual(rgb)
+      expect(oklabToRgb(rgbToOklab(rgb[0], rgb[1], rgb[2]))).toEqual(rgb)
     }
   })
 

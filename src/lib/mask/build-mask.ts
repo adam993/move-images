@@ -24,7 +24,7 @@ export function buildMask(image: LabImage, selection: Selection, featherPx: numb
   const { width, height, data } = image
   const pixelCount = width * height
   const { targets, tolerance, softness, invert } = selection
-  let weights = new Float32Array(pixelCount)
+  let weights: Float32Array = new Float32Array(pixelCount)
 
   for (let i = 0; i < pixelCount; i++) {
     let nearestSq = Infinity
