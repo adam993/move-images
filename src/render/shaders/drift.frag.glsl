@@ -85,10 +85,12 @@ vec2 layerDisplacement(int i, vec2 p) {
   vec3 q = vec3(p / scale, speed * uTime + phase / TAU);
   if (uLoopDuration > 0.0) {
     // Walk a circle instead of a line through noise time, with the same distance per loop: the path
-    // returns to its start after uLoopDuration seconds, so the last frame flows into the first.
+    // returns to its start after uLoopDuration seconds, so the last frame flows into the first. The circle
+    // starts at the preview's point and heading (phase included), so frame 0 matches the preview and a
+    // speed-0 layer stays identical to it.
     float radius = speed * uLoopDuration / TAU;
-    float angle = TAU * uTime / uLoopDuration + phase;
-    q = vec3(p / scale + vec2(radius * cos(angle), 0.0), radius * sin(angle));
+    float angle = TAU * uTime / uLoopDuration;
+    q = vec3(p / scale + vec2(radius * (cos(angle) - 1.0), 0.0), phase / TAU + radius * sin(angle));
   }
   return amplitude * vec2(fbm(q), fbm(q + vec3(31.7, 11.3, 0.0)));
 }
