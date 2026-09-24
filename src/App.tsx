@@ -4,10 +4,13 @@ import { ImagePicker } from '@/components/sidebar/ImagePicker'
 import { CanvasStage } from '@/components/stage/CanvasStage'
 import { HoverReadout } from '@/components/stage/HoverReadout'
 import { StageToolbar } from '@/components/stage/StageToolbar'
+import { usePreventFileDropNavigation } from '@/hooks/use-prevent-file-drop-navigation'
 import { SAMPLE_IMAGES } from '@/lib/image/samples'
 import { loadSample } from '@/state/image-actions'
 
 export default function App() {
+  usePreventFileDropNavigation()
+
   useEffect(() => {
     void loadSample(SAMPLE_IMAGES[0])
   }, [])
