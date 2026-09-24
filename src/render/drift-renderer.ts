@@ -15,6 +15,8 @@ export type FrameState = {
   view: ViewMode
   /** Index into `layers` whose mask the mask view highlights; -1 for none. */
   activeLayerIndex: number
+  /** Seconds after which the animation must repeat exactly (export loops); 0 or omitted for none. */
+  loopDuration?: number
 }
 
 const NOISE_INCLUDE = '// @include simplex-noise'
@@ -30,12 +32,16 @@ const UNIFORM_NAMES = [
   'uParamsB',
   'uView',
   'uActiveLayer',
+  'uLoopDuration',
 ] as const
 type UniformName = (typeof UNIFORM_NAMES)[number]
 
-/** Draws the source image with every layer's masked displacement applied. Owns all GL state for one canvas. */
+/**
+ * Draws the source image with every layer's masked displacement applied. Owns all GL state for one canvas:
+ * the on-screen stage, or an OffscreenCanvas at export size.
+ */
 export class DriftRenderer {
-  private readonly canvas: HTMLCanvasElement
+  private readonly canvas: HTMLCanvasElement | OffscreenCanvas
   private readonly gl: WebGL2RenderingContext
   private readonly program: WebGLProgram
   private readonly vertexArray: WebGLVertexArrayObject
@@ -46,8 +52,8 @@ export class DriftRenderer {
   private imageSize = { width: 0, height: 0 }
   private maskSize = { width: 0, height: 0 }
 
-  constructor(canvas: HTMLCanvasElement) {
-    const gl = canvas.getContext('webgl2', { alpha: false, antialias: false })
+  constructor(canvas: HTMLCanvasElement | OffscreenCanvas) {
+    const gl = canvas.getContext('webgl2', { alpha: false, antialias: false }) as WebGL2RenderingContext | null
     if (!gl) throw new Error('WebGL2 is not available in this browser, so effects cannot be rendered.')
     if (!fragmentTemplate.includes(NOISE_INCLUDE)) {
       throw new Error(`drift.frag.glsl is missing the "${NOISE_INCLUDE}" marker`)
@@ -149,8 +155,25 @@ export class DriftRenderer {
     gl.uniform4fv(u.uParamsB, layers.paramsB)
     gl.uniform1i(u.uView, VIEW_CODES[frame.view])
     gl.uniform1i(u.uActiveLayer, frame.activeLayerIndex)
+    gl.uniform1f(u.uLoopDuration, frame.loopDuration ?? 0)
 
     gl.drawArrays(gl.TRIANGLES, 0, 3)
+  }
+
+  /** The last rendered frame as top-down RGBA rows. Call right after `render`, in the same task. */
+  readPixels(): Uint8ClampedArray {
+    const { gl } = this
+    const { width, height } = this.canvas
+    const bottomUp = new Uint8ClampedArray(width * height * 4)
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, bottomUp)
+
+    // GL's origin is bottom-left; image encoders expect row 0 at the top.
+    const rowBytes = width * 4
+    const topDown = new Uint8ClampedArray(bottomUp.length)
+    for (let y = 0; y < height; y++) {
+      topDown.set(bottomUp.subarray((height - 1 - y) * rowBytes, (height - y) * rowBytes), y * rowBytes)
+    }
+    return topDown
   }
 
   /** Frees GL objects but keeps the context: React StrictMode re-creates a renderer on the same canvas. */
@@ -162,6 +185,15 @@ export class DriftRenderer {
     gl.deleteProgram(this.program)
     this.imageTexture = null
     this.maskTexture = null
+  }
+
+  /**
+   * Frees GL objects and releases the context itself. For short-lived export renderers: browsers cap live
+   * WebGL contexts, so repeated exports must not wait for garbage collection.
+   */
+  loseContext(): void {
+    this.dispose()
+    this.gl.getExtension('WEBGL_lose_context')?.loseContext()
   }
 }
 

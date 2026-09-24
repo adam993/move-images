@@ -15,6 +15,7 @@ uniform vec4 uParamsA[MAX_LAYERS];  // amplitude px, scale px, speed Hz, phase r
 uniform vec4 uParamsB[MAX_LAYERS];  // direction xy, center xy (0-1)
 uniform int uView;                  // 0 animated, 1 mask, 2 original
 uniform int uActiveLayer;
+uniform float uLoopDuration;         // seconds; > 0 makes turbulence repeat exactly (export loops)
 
 in vec2 vUv;
 out vec4 outColor;
@@ -53,6 +54,13 @@ vec2 layerDisplacement(int i, vec2 p) {
   }
   // Turbulence: noise evolving through time instead of scrolling, so the motion stays in place.
   vec3 q = vec3(p / scale, speed * uTime + phase / TAU);
+  if (uLoopDuration > 0.0) {
+    // Walk a circle instead of a line through noise time, with the same distance per loop: the path
+    // returns to its start after uLoopDuration seconds, so the last frame flows into the first.
+    float radius = speed * uLoopDuration / TAU;
+    float angle = TAU * uTime / uLoopDuration + phase;
+    q = vec3(p / scale + vec2(radius * cos(angle), 0.0), radius * sin(angle));
+  }
   return amplitude * vec2(fbm(q), fbm(q + vec3(31.7, 11.3, 0.0)));
 }
 
