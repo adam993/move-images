@@ -26,7 +26,7 @@ declare module 'gifenc' {
   export type GifStream = {
     writeFrame(index: Uint8Array, width: number, height: number, options?: GifFrameOptions): void
     finish(): void
-    bytes(): Uint8Array
+    bytes(): Uint8Array<ArrayBuffer>
   }
 
   export function GIFEncoder(options?: { auto?: boolean; initialCapacity?: number }): GifStream

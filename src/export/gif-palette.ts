@@ -32,3 +32,12 @@ export function buildGlobalPalette(
   }
   return quantize(sampled.subarray(0, written * 4), maxColors)
 }
+
+const PALETTE_SAMPLE_FRAMES = 4
+
+/** Evenly spaced, distinct frame indices (first and last included) to build the global palette from. */
+export function paletteSampleIndices(frameCount: number): number[] {
+  const steps = PALETTE_SAMPLE_FRAMES - 1
+  const indices = Array.from({ length: PALETTE_SAMPLE_FRAMES }, (_, k) => Math.round((k * (frameCount - 1)) / steps))
+  return [...new Set(indices)]
+}

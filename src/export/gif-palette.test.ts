@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildGlobalPalette } from './gif-palette'
+import { buildGlobalPalette, paletteSampleIndices } from './gif-palette'
 
 function flatFrame([r, g, b]: [number, number, number], pixels = 16): Uint8ClampedArray {
   const frame = new Uint8ClampedArray(pixels * 4)
@@ -32,5 +32,16 @@ describe('buildGlobalPalette', () => {
 
   it('rejects an empty frame list', () => {
     expect(() => buildGlobalPalette([], 256)).toThrow(/at least one frame/)
+  })
+})
+
+describe('paletteSampleIndices', () => {
+  it('spreads four sample frames evenly from the first to the last', () => {
+    expect(paletteSampleIndices(60)).toEqual([0, 20, 39, 59])
+  })
+
+  it('never repeats a frame when there are fewer frames than samples', () => {
+    expect(paletteSampleIndices(3)).toEqual([0, 1, 2])
+    expect(paletteSampleIndices(1)).toEqual([0])
   })
 })
