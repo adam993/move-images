@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Inspector } from '@/components/inspector/Inspector'
 import { ImagePicker } from '@/components/sidebar/ImagePicker'
 import { CanvasStage } from '@/components/stage/CanvasStage'
 import { HoverReadout } from '@/components/stage/HoverReadout'
@@ -19,7 +20,7 @@ export default function App() {
         <CanvasStage />
         <HoverReadout />
       </main>
-      <aside className="min-h-0 border-l border-border bg-sidebar" />
+      <Inspector />
     </div>
   )
 }

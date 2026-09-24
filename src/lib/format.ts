@@ -5,3 +5,9 @@ export function formatPercent(share: number): string {
   if (share < 0.001) return '<0.1%'
   return `${(share * 100).toFixed(1)}%`
 }
+
+/** Formats a slider value with the same number of decimals as its step (0.005 → 3, 1 → 0). */
+export function formatStepValue(value: number, step: number): string {
+  const decimals = (String(step).split('.')[1] ?? '').length
+  return value.toFixed(decimals)
+}
