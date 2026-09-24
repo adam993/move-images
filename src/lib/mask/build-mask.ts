@@ -24,17 +24,22 @@ export function buildMask(image: LabImage, selection: Selection, featherPx: numb
   const { width, height, data } = image
   const pixelCount = width * height
   const { targets, tolerance, softness, invert } = selection
+  // Flat copy of target colors: this loop runs ~1M × targets times per rebuild.
+  const targetLabs = Float64Array.from(targets.flatMap((target) => target.lab))
+  // Beyond this squared distance the weight is 0, so most pixels skip the sqrt and smoothstep.
+  const outerSq = (tolerance + Math.max(0, softness) + MATCH_EPSILON) ** 2
   let weights: Float32Array = new Float32Array(pixelCount)
 
   for (let i = 0; i < pixelCount; i++) {
     let nearestSq = Infinity
-    for (const { lab } of targets) {
-      const dL = data[i * 3] - lab[0]
-      const da = data[i * 3 + 1] - lab[1]
-      const db = data[i * 3 + 2] - lab[2]
-      nearestSq = Math.min(nearestSq, dL * dL + da * da + db * db)
+    for (let t = 0; t < targetLabs.length; t += 3) {
+      const dL = data[i * 3] - targetLabs[t]
+      const da = data[i * 3 + 1] - targetLabs[t + 1]
+      const db = data[i * 3 + 2] - targetLabs[t + 2]
+      const sq = dL * dL + da * da + db * db
+      if (sq < nearestSq) nearestSq = sq
     }
-    const weight = selectionWeight(Math.sqrt(nearestSq), tolerance, softness)
+    const weight = nearestSq > outerSq ? 0 : selectionWeight(Math.sqrt(nearestSq), tolerance, softness)
     weights[i] = invert ? 1 - weight : weight
   }
 
