@@ -1,0 +1,33 @@
+# --- LLM / Claude Code tooling ---
+
+# Agent scratchpad — notes, plans, post-mortems for the agent's future-self
+local-claude-files/
+
+# Per-developer Claude Code overrides (auto-gitignored by Claude Code on first write)
+.claude/settings.local.json
+
+# Per-developer Claude notes
+CLAUDE.local.md
+
+# CodeGraph data — rebuilt locally; only config.json is shared.
+# (.codegraph/.gitignore already handles this, but mirror it here so anyone
+# without codegraph installed still gitignores it.)
+.codegraph/*.db
+.codegraph/*.db-wal
+.codegraph/*.db-shm
+.codegraph/cache/
+.codegraph/*.log
+.codegraph/.dirty
+
+# --- Build / runtime ---
+.astro/
+.netlify/
+.strapi/
+.wrangler/
+.tmp/
+
+# --- Secrets ---
+.env
+.env.local
+.env.production
+.env.*.local
